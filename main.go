@@ -15,6 +15,7 @@ func main() {
 	database.Init()
 
 	router := mux.NewRouter()
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	router.HandleFunc("/", handlers.GetFilms).Methods("GET")
 
 	port := os.Getenv("SERVER_PORT")
