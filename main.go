@@ -1,44 +1,28 @@
 package main
 
 import (
+	"fmt"
+	"htmx_go/internal/database"
+	"htmx_go/internal/handlers"
 	"log"
 	"net/http"
-	"text/template"
-	"time"
+	"os"
+
+	"github.com/gorilla/mux"
 )
 
-type Film struct {
-	Title    string
-	Director string
-}
-
 func main() {
+	database.Init()
 
-	h1 := func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("index.html"))
+	router := mux.NewRouter()
+	router.HandleFunc("/", handlers.GetFilms).Methods("GET")
 
-		films := map[string][]Film{
-			"Films": {
-				{Title: "The Godfather", Director: "Francis Ford Coppola"},
-				{Title: "The Dark Knight", Director: "Christopher Nolan"},
-				{Title: "The Goodfellas", Director: "Martin Scorsese"},
-			},
-		}
-
-		tmpl.Execute(w, films)
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8000"
 	}
 
-	h2 := func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(1 * time.Second)
-		title := r.PostFormValue("title")
-		director := r.PostFormValue("director")
-		tmpl := template.Must(template.ParseFiles("index.html"))
+	fmt.Printf("Server is running on port %s\n", port)
 
-		tmpl.ExecuteTemplate(w, "film-list-element", Film{Title: title, Director: director})
-
-	}
-	http.HandleFunc("/", h1)
-	http.HandleFunc("/add-film", h2)
-
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
